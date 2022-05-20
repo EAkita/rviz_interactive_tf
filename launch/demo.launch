@@ -8,9 +8,15 @@
       appear unless I switch rviz to the tf1 frame, then move tf2,
       then I can go back to the map frame and see tf2 markers -->
   <node name="itf" pkg="rviz_interactive_tf" type="interactive_tf" ns="itf2">
-    <param name="parent_frame" value="tf1"/>
+    <param name="parent_frame" value="map"/>
     <param name="frame" value="tf2"/>
   </node>
+  <!-- Add new frame -->
+  <node name="itf" pkg="rviz_interactive_tf" type="interactive_tf" ns="itf3">
+    <param name="parent_frame" value="map"/>
+    <param name="frame" value="tf3"/>
+  </node>
+  
   <node name="rviz" pkg="rviz" type="rviz"
       args="-d $(find rviz_interactive_tf)/config/interactive_tf.rviz"/>
 </launch>
