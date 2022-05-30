@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<launch>
+
+<!-- Load each tf as a separate node with x,y & theta parameters -->
+  <node name="itf" pkg="rviz_interactive_tf" type="interactive_tf" ns="itf1">
+    <param name="parent_frame" value="map"/> 
+    <param name="frame" value="tf1"/>
+    <param name="init_pose_tf_x" value="3.5"/>
+    <param name="init_pose_tf_y" value="0.0"/>
+    <!-- Need to set for only x & z -->
+    <param name="rot_angle_x" value="90.0"/> 
+    <param name="rot_angle_z" value="-90.0"/> 
+
+  </node>
+  
+  <node name="itf" pkg="rviz_interactive_tf" type="interactive_tf" ns="itf2">
+    <param name="parent_frame" value="map"/>
+    <param name="frame" value="tf2"/>
+    <param name="init_pose_tf_x" value="1.5"/>
+    <param name="init_pose_tf_y" value="3.0"/>
+    <param name="rot_angle" value="45"/>
+    <param name="rot_angle_x" value="135.0"/> 
+    <param name="rot_angle_z" value="-90.0"/> 
+  </node>
+
+  <node name="itf" pkg="rviz_interactive_tf" type="interactive_tf" ns="itf3">
+    <param name="parent_frame" value="map"/>
+    <param name="frame" value="tf3"/>
+    <param name="init_pose_tf_x" value="1.5"/>
+    <param name="init_pose_tf_y" value="-3.0"/>
+    <param name="rot_angle_x" value="45.0"/> 
+    <param name="rot_angle_z" value="-90.0"/> 
+  </node>
+  
+  <node name="rviz" pkg="rviz" type="rviz"
+      args="-d $(find rviz_interactive_tf)/config/interactive_tf.rviz"/>
+</launch>

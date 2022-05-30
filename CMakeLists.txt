@@ -9,6 +9,8 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
 )
 
+find_package(Eigen3 REQUIRED)
+
 set(
   ROSLINT_CPP_OPTS
   "--extensions=cpp,h,hpp" "--filter=-whitespace/braces,-runtime/references"
@@ -28,6 +30,8 @@ catkin_package(
 include_directories(${catkin_INCLUDE_DIRS})
 add_executable(interactive_tf src/interactive_tf.cpp)
 target_link_libraries(interactive_tf ${catkin_LIBRARIES})
+
+include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 
 install(TARGETS
   interactive_tf

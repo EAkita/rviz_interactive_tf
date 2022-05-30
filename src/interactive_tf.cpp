@@ -5,6 +5,11 @@
  * drag it around and rotate it with interactive marker controls.
  */
 
+/* Edited by Akita, May 2022
+ * Initialize TF pose as (0.0, 0.0, 0.0)
+ * Read pose params if available and update pose 
+*/
+
 #include <boost/bind.hpp>
 #include <geometry_msgs/Pose.h>
 #include <interactive_markers/interactive_marker_server.h>
@@ -12,6 +17,7 @@
 #include <string>
 #include <tf/transform_broadcaster.h>
 #include <visualization_msgs/InteractiveMarker.h>
+#include <Eigen/Geometry>
 
 void testFeedback(
     const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
@@ -28,6 +34,9 @@ class InteractiveTf
   tf::TransformBroadcaster br_;
   std::string parent_frame_;
   std::string frame_;
+  Eigen::Vector3d init_position_;
+  Eigen::Vector3d init_orientation_;
+
   void updateTf(int, const ros::TimerEvent& event);
   ros::Timer tf_timer_;
 
@@ -40,14 +49,71 @@ InteractiveTf::InteractiveTf() :
   parent_frame_("map"),
   frame_("interactive_tf")
 {
-  server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_tf"));
-  pose_.orientation.w = 1.0;
+  // Initialize pose position to origin
+  pose_.position.x = 0.0; 
+  pose_.position.y = 0.0; 
+  pose_.position.z = 1.0; 
 
+  //Initialize orientation 
+  pose_.orientation.w = 1.0;
+  pose_.orientation.x = 0.0;
+  pose_.orientation.y = 0.0;
+  pose_.orientation.z = 0.0;
+
+  server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_tf"));
+  
   // TODO(lucasw) need way to get parameters out- tf echo would work
-  float scale_ = 1.0;
+  float scale_ = 0.5;
   ros::param::get("~scale", scale_);
   ros::param::get("~parent_frame", parent_frame_);
   ros::param::get("~frame", frame_);
+
+  // Get x,y pose parameters from the launch file
+  ros::param::get("~init_pose_tf_x", init_position_.x());
+  ros::param::get("~init_pose_tf_y", init_position_.y());
+ 
+  if (init_position_.x())
+    {
+        ROS_INFO_THROTTLE(60, "Paramerter value provided!");
+        pose_.position.x =init_position_.x(); 
+    }
+
+  if ( init_position_.y())
+    {
+        ROS_INFO_THROTTLE(60, "Paramerter value provided!"); 
+        pose_.position.y =init_position_.y(); 
+    }
+
+  // Get rotation angle orientation parameter from the param server 
+  ros::param::get("~rot_angle_x", init_orientation_.x());
+  ros::param::get("~rot_angle_z", init_orientation_.z());
+
+  // Convert to radians
+  Eigen::Vector3d angle_rad;
+  const int angle_converter {180}; 
+
+  if (init_orientation_.x())
+    {
+    angle_rad.x() = (init_orientation_.x()/angle_converter) *M_PI; 
+    }
+
+  if (init_orientation_.z())
+  {
+    angle_rad.z() = (init_orientation_.z()/angle_converter) *M_PI; 
+  }
+    
+  // Get the quaternion
+  Eigen::Vector3d euler_ang(angle_rad.x(), 0, angle_rad.z());
+
+  Eigen::Quaterniond quaternion = Eigen::AngleAxisd(euler_ang[0], Eigen::Vector3d::UnitZ()) * 
+    Eigen::AngleAxisd(euler_ang[1], Eigen::Vector3d::UnitY()) * 
+    Eigen::AngleAxisd(euler_ang[2], Eigen::Vector3d::UnitX());
+
+  pose_.orientation.w = quaternion.w();
+  pose_.orientation.x = quaternion.x();
+  pose_.orientation.y = quaternion.y();
+  pose_.orientation.z = quaternion.z();
+    
 
   int_marker_.header.frame_id = parent_frame_;
   // http://answers.ros.org/question/262866/interactive-marker-attached-to-a-moving-frame/
